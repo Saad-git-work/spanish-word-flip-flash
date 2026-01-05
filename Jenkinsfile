@@ -29,11 +29,8 @@ pipeline {
                         }
                     }
                     steps {
-                            // Unit tests with Vitest
-                            sh '''
-                            npm ci
-                            npx vitest run --reporter=verbose
-                            '''
+                        // Unit tests with Vitest
+                        sh 'npx vitest run --reporter=verbose'
                     }
                 }
                 stage('integration tests') {
