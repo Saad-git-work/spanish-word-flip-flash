@@ -21,21 +21,32 @@ pipeline {
         stage('test') {
             parallel {
                 stage('unit tests') {
-            agent {
-                docker {
-                    image 'node:22-alpine'
-                    reuseNode true
+                    agent {
+                        docker {
+                            image 'node:22-alpine'
+                            reuseNode true
+                        }
+                    }
+                    steps {
+                            sh '''
+                            npm ci
+                            npx vitest run --reporter=verbose
+                            '''
+                        }
+                    }
+                    stage('integrations tests'){
+                        agent{
+                            docker{
+                                image 'mcr.microsoft.com/playwright:v1.54.2-jammy'
+                                reuseNode true
+                            }
+                        }
+                        steps{
+                            sh 'npx playwright test'
+                        }
+                    }
                 }
             }
-            steps {
-                sh '''
-                  npm ci
-                  npx vitest run --reporter=verbose
-                '''
-            }
-        }
-    }
-    }
 
         stage('deploy') {
             agent {
