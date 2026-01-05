@@ -21,19 +21,21 @@ pipeline {
         stage('test') {
             parallel {
                 stage('unit tests') {
-                    agent {
-                        docker {
-                            image 'node:22-alpine'
-                            reuseNode true
-                        }
-                    }
-                    steps {
-                        // Unit tests with Vitest
-                        sh 'npx vitest run --reporter=verbose'
-                    }
+            agent {
+                docker {
+                    image 'node:22-alpine'
+                    reuseNode true
                 }
             }
+            steps {
+                sh '''
+                  npm ci
+                  npx vitest run --reporter=verbose
+                '''
+            }
         }
+    }
+    }
 
         stage('deploy') {
             agent {
