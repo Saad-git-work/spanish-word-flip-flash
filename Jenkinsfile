@@ -10,6 +10,7 @@ pipeline {
             agent {
                 docker {
                     image 'node:22-alpine'
+                    reuseNode true
                 }
             }
             steps {
@@ -28,25 +29,26 @@ pipeline {
                         }
                     }
                     steps {
+                            // Unit tests with Vitest
                             sh '''
                             npm ci
                             npx vitest run --reporter=verbose
                             '''
+                    }
+                }
+                stage('integration tests') {
+                    agent {
+                        docker {
+                            image 'mcr.microsoft.com/playwright:v1.54.2-jammy'
+                            reuseNode true
                         }
                     }
-                    stage('integrations tests'){
-                        agent{
-                            docker{
-                                image 'mcr.microsoft.com/playwright:v1.54.2-jammy'
-                                reuseNode true
-                            }
-                        }
-                        steps{
-                            sh 'npx playwright test'
-                        }
+                    steps {
+                        sh 'npx playwright test'
                     }
                 }
             }
+        }
 
         stage('deploy') {
             agent {
@@ -58,20 +60,20 @@ pipeline {
                 // Mock deployment which does nothing
                 echo 'Mock deployment was successful!'
             }
+        }
 
-            stage('e2e'){
-                agent{
-                    docker{
-                        image 'mcr.microsoft.com/playwright:v1.54.2-jammy'
-                        reuseNode true
-                    }
+        stage('e2e') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.54.2-jammy'
+                    reuseNode true
                 }
-                environment{
-                    E2E_BASE_URL = 'https://spanish-cards.netlify.app/'
-                }
-                steps{
-                    sh 'npx playwright test'
-                }
+            }
+            environment {
+                E2E_BASE_URL = 'https://spanish-cards.netlify.app/'
+            }
+            steps {
+                sh 'npx playwright test'
             }
         }
     }
