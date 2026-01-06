@@ -10,7 +10,6 @@ pipeline {
             agent {
                 docker {
                     image 'node:22-alpine'
-                    reuseNode true
                 }
             }
             steps {
@@ -47,18 +46,6 @@ pipeline {
             }
         }
 
-        stage('deploy') {
-            agent {
-                docker {
-                    image 'alpine'
-                }
-            }
-            steps {
-                // Mock deployment which does nothing
-                echo 'Mock deployment was successful!'
-            }
-        }
-
         stage('e2e') {
             agent {
                 docker {
@@ -72,6 +59,25 @@ pipeline {
             steps {
                 sh 'npx playwright test'
             }
+            post {
+                always {
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: true, icon: '', keepAll: false, reportDir: 'reports-e2e/html/', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+                    junit stdioRetention: 'ALL', testResults: 'reports-e2e/junit.xml'
+                }
+            }
+        }
+
+        stage('deploy') {
+            agent {
+                docker {
+                    image 'alpine'
+                }
+            }
+            steps {
+                // Mock deployment which does nothing
+                echo 'Mock deployment was successful!'
+            }
         }
     }
 }
+
